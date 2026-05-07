@@ -239,6 +239,47 @@ function NumInput({ label, value, onChange, step, min, suffix, hint }) {
   );
 }
 
+function PercentageSliderInput({ label, value, onChange, step, max, hint, otherPcts }) {
+  const safeValue = value == null ? 0 : value;
+  const otherTotal = (otherPcts || []).reduce((sum, v) => sum + (v == null ? 0 : v), 0);
+  const maxAllowed = Math.min(max || 50, 50 - otherTotal);
+  const isCapped = safeValue >= maxAllowed;
+
+  return (
+    <div>
+      <label>{label}</label>
+      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <input
+          type="range"
+          min="0"
+          max={maxAllowed}
+          step={step || "0.5"}
+          value={safeValue}
+          onChange={(e) => onChange(Number(e.target.value))}
+          style={{ flex: 1 }}
+        />
+        <input
+          type="number"
+          step={step || "0.5"}
+          min="0"
+          max={maxAllowed}
+          value={safeValue}
+          onChange={(e) => onChange(e.target.value === "" ? "" : Number(e.target.value))}
+          style={{ width: 60 }}
+        />
+        <span style={{ color: "#999", minWidth: 20 }}>%</span>
+      </div>
+      {isCapped && otherTotal > 0 ? (
+        <div style={{ fontSize: 11, color: "#d9534f", marginTop: 4 }}>
+          Capped at {maxAllowed.toFixed(1)}% (total limit is 50%)
+        </div>
+      ) : hint ? (
+        <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{hint}</div>
+      ) : null}
+    </div>
+  );
+}
+
 function DateInput({ label, value, onChange }) {
   return (
     <div>
@@ -650,36 +691,57 @@ function App() {
 
       <div className="card">
         <h2>
-          Contribution Rates - Regular Paychecks <span className="hdr-sub">total: {regPctSum.toFixed(1)}%</span>
+          Contribution Rates - Regular Paychecks <span className="hdr-sub">total: {regPctSum.toFixed(1)}% (max 50%)</span>
         </h2>
         <div className="grid grid-3">
-          <NumInput label="Pre-tax %" value={regRates.preTax} onChange={(v) => setRegRates({ ...regRates, preTax: v })} step="0.5" />
-          <NumInput label="Roth %" value={regRates.roth} onChange={(v) => setRegRates({ ...regRates, roth: v })} step="0.5" />
-          <NumInput
+          <PercentageSliderInput
+            label="Pre-tax %"
+            value={regRates.preTax}
+            onChange={(v) => setRegRates({ ...regRates, preTax: v })}
+            step="0.5"
+            otherPcts={[regRates.roth, regRates.afterTax]}
+          />
+          <PercentageSliderInput
+            label="Roth %"
+            value={regRates.roth}
+            onChange={(v) => setRegRates({ ...regRates, roth: v })}
+            step="0.5"
+            otherPcts={[regRates.preTax, regRates.afterTax]}
+          />
+          <PercentageSliderInput
             label="After-tax %"
             value={regRates.afterTax}
             onChange={(v) => setRegRates({ ...regRates, afterTax: v })}
             step="0.5"
+            otherPcts={[regRates.preTax, regRates.roth]}
           />
         </div>
 
         <div className="divider" />
         <h2>
-          Contribution Rates - Bonuses (STI + all LTIs) <span className="hdr-sub">total: {bonusPctSum.toFixed(1)}%</span>
+          Contribution Rates - Bonuses (STI + all LTIs) <span className="hdr-sub">total: {bonusPctSum.toFixed(1)}% (max 50%)</span>
         </h2>
         <div className="grid grid-3">
-          <NumInput
+          <PercentageSliderInput
             label="Pre-tax %"
             value={bonusRates.preTax}
             onChange={(v) => setBonusRates({ ...bonusRates, preTax: v })}
             step="0.5"
+            otherPcts={[bonusRates.roth, bonusRates.afterTax]}
           />
-          <NumInput label="Roth %" value={bonusRates.roth} onChange={(v) => setBonusRates({ ...bonusRates, roth: v })} step="0.5" />
-          <NumInput
+          <PercentageSliderInput
+            label="Roth %"
+            value={bonusRates.roth}
+            onChange={(v) => setBonusRates({ ...bonusRates, roth: v })}
+            step="0.5"
+            otherPcts={[bonusRates.preTax, bonusRates.afterTax]}
+          />
+          <PercentageSliderInput
             label="After-tax %"
             value={bonusRates.afterTax}
             onChange={(v) => setBonusRates({ ...bonusRates, afterTax: v })}
             step="0.5"
+            otherPcts={[bonusRates.preTax, bonusRates.roth]}
           />
         </div>
 
@@ -700,6 +762,16 @@ function App() {
             </select>
           </div>
         </div>
+        {regPctSum > 50 && (
+          <div style={{ marginTop: 12, padding: 8, background: "#fff3cd", border: "1px solid #ffc107", borderRadius: 4, color: "#856404", fontSize: 12 }}>
+            ⚠️ Regular paycheck contributions exceed 50% limit. Current: {regPctSum.toFixed(1)}%. Please adjust.
+          </div>
+        )}
+        {bonusPctSum > 50 && (
+          <div style={{ marginTop: 12, padding: 8, background: "#fff3cd", border: "1px solid #ffc107", borderRadius: 4, color: "#856404", fontSize: 12 }}>
+            ⚠️ Bonus contributions exceed 50% limit. Current: {bonusPctSum.toFixed(1)}%. Please adjust.
+          </div>
+        )}
       </div>
 
       <div className="card">
