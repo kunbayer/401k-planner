@@ -549,7 +549,7 @@ function App() {
             Export
           </button>
           <button 
-            onClick={() => window.open("https://github.com/kunbayer/401k-planner/raw/main/dist/401k-planner-standalone.html", "_blank")}
+            onClick={() => window.open("https://github.com/kunbayer/401k-planner/raw/main/401k-planner-standalone.html", "_blank")}
             title="Download standalone HTML for offline use - no server access needed"
             style={{ background: "#28a745", color: "#fff" }}
           >
