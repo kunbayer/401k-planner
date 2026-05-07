@@ -548,6 +548,13 @@ function App() {
           <button onClick={exportJson} title="Download inputs as JSON">
             Export
           </button>
+          <button 
+            onClick={() => window.open("https://github.com/kunbayer/401k-planner/raw/main/dist/401k-planner-standalone.html", "_blank")}
+            title="Download standalone HTML for offline use - no server access needed"
+            style={{ background: "#28a745", color: "#fff" }}
+          >
+            📥 Download Standalone
+          </button>
           <label style={{ margin: 0 }}>
             <span
               style={{
@@ -578,6 +585,16 @@ function App() {
           <strong>Disclaimer:</strong> This tool is for educational purposes only and does not constitute financial, tax, or investment advice. 
           Please consult with a qualified financial advisor or tax professional before making any decisions regarding your 401(k) contributions.
           Results are estimates based on 2026 IRS limits.
+        </div>
+      </div>
+
+      <div style={{ background: "#f0f8e7", border: "1px solid #c3e6cb", borderRadius: 6, padding: 12, marginBottom: 12 }}>
+        <div style={{ fontSize: 12, color: "#155724", lineHeight: 1.6 }}>
+          <strong>🔒 Privacy & Data:</strong> <strong>No data is sent to any server.</strong> All your inputs are stored only in your browser's local storage on your device. 
+          You have full control: use "Export" to download your data, or clear everything with "Reset". 
+          For maximum privacy, <a href="#" style={{ color: "#155724", fontWeight: "bold" }} onClick={(e) => { e.preventDefault(); alert("Download the standalone HTML file from the app to run locally with zero server access."); }}>
+            download the standalone version
+          </a> and run it completely offline.
         </div>
       </div>
 
@@ -619,6 +636,20 @@ function App() {
                 }}
               >
                 Terms & Limits
+              </button>
+              <button
+                onClick={() => setHelpTab("privacy")}
+                style={{
+                  background: helpTab === "privacy" ? "#007bff" : "#f5f5f5",
+                  color: helpTab === "privacy" ? "white" : "#333",
+                  border: "none",
+                  padding: "8px 16px",
+                  borderRadius: "4px 4px 0 0",
+                  cursor: "pointer",
+                  fontWeight: helpTab === "privacy" ? "bold" : "normal",
+                }}
+              >
+                🔒 Privacy & Offline
               </button>
             </div>
 
@@ -743,6 +774,51 @@ function App() {
                     <p>Your total contributions and employer additions since the start of 2026 through your last paycheck. This is the starting point for the projection.</p>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {helpTab === "privacy" && (
+              <div style={{ fontSize: 13, lineHeight: 1.8 }}>
+                <h3 style={{ marginTop: 0 }}>🔒 Privacy & Data Security</h3>
+                
+                <div style={{ background: "#d4edda", border: "1px solid #c3e6cb", borderRadius: 4, padding: 12, marginBottom: 16 }}>
+                  <strong style={{ color: "#155724" }}>✓ No data sent to any server</strong>
+                  <p style={{ margin: "8px 0 0 0", color: "#155724" }}>
+                    All your inputs, projections, and settings are stored ONLY in your browser's local storage. Nothing is transmitted to external servers or logged.
+                  </p>
+                </div>
+
+                <h3>Where Your Data is Stored</h3>
+                <ul style={{ paddingLeft: 20 }}>
+                  <li><strong>Browser Local Storage:</strong> Your current session data persists in your browser (auto-save on every change)</li>
+                  <li><strong>Your Device Only:</strong> Local storage is device-specific and browser-specific (different browsers ≠ shared data)</li>
+                  <li><strong>Never Uploaded:</strong> No automatic backups, no cloud sync, no telemetry</li>
+                </ul>
+
+                <h3>Download Standalone Version for Maximum Privacy</h3>
+                <p>
+                  If you prefer <strong>zero server access</strong>, download the standalone HTML file. It contains the entire app in a single file with no external dependencies. 
+                  Simply save it and open it in any browser—works offline with the same full functionality.
+                </p>
+                <p style={{ fontSize: 12, color: "#666" }}>
+                  <strong>How to use:</strong> Click "📥 Download Standalone" button at the top, save the file to your computer, then double-click to open it locally. 
+                  Your data stays 100% on your device.
+                </p>
+
+                <h3>Data You Control</h3>
+                <ul style={{ paddingLeft: 20 }}>
+                  <li><strong>Export:</strong> Download your inputs as JSON at any time</li>
+                  <li><strong>Import:</strong> Re-upload your exported settings to restore them</li>
+                  <li><strong>Reset:</strong> Clear all data from your browser with one click</li>
+                  <li><strong>Delete via Browser:</strong> Clear site data in browser settings (Settings → Privacy → Clear browsing data)</li>
+                </ul>
+
+                <h3>GitHub Repository</h3>
+                <p>
+                  The full source code is open-source on GitHub: <a href="https://github.com/kunbayer/401k-planner" target="_blank" rel="noopener noreferrer" style={{ color: "#007bff" }}>
+                    kunbayer/401k-planner
+                  </a>. You can review the code to verify no data is sent anywhere.
+                </p>
               </div>
             )}
 
