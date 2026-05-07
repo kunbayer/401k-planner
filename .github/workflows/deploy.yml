@@ -1,4 +1,4 @@
-name: Build and Deploy to GitHub Pages
+name: Deploy Standalone HTML to GitHub Pages
 
 on:
   push:
@@ -11,26 +11,18 @@ permissions:
   id-token: write
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     environment: github-pages
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build app
-        env:
-          VITE_BASE_PATH: /401k-planner/
-        run: npm run build
+      - name: Prepare standalone artifact
+        run: |
+          mkdir -p ./pages
+          cp ./401k-planner-standalone.html ./pages/index.html
+          touch ./pages/.nojekyll
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
@@ -38,7 +30,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist'
+          path: './pages'
 
       - name: Deploy to GitHub Pages
         id: deployment
