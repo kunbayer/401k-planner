@@ -63,8 +63,9 @@ function buildEvents(lastPayDate, paycheckGross, sti, ltis) {
   return events;
 }
 
-function simulate({ events, regRates, bonusRates, ytd, spillOn, catchupAmount }) {
+function simulate({ events, regRates, bonusRates, ytd, spillOn, catchupAmount, matchStrategy }) {
   const limit402g = LIMIT_402G + (catchupAmount || 0);
+  const ms = matchStrategy || DEFAULTS.matchStrategy;
 
   let cumPreRoth = ytd.preTax + ytd.roth;
   let cumAfterTax = ytd.afterTax;
@@ -118,11 +119,14 @@ function simulate({ events, regRates, bonusRates, ytd, spillOn, catchupAmount })
     let actualAfterTax = intendedAfterTax + spillAmount;
 
     const intendedElectiveRate = ev.gross > 0 ? intendedElective / ev.gross : 0;
+    const tier1Threshold = ms.tier1Rate / 100;
+    const tier2Threshold = (ms.tier1Rate + ms.tier2Rate) / 100;
     const matchRate =
-      Math.min(intendedElectiveRate, 0.03) * 1.0 + Math.max(0, Math.min(intendedElectiveRate - 0.03, 0.04)) * 0.5;
+      Math.min(intendedElectiveRate, tier1Threshold) * (ms.tier1Match / 100) +
+      Math.max(0, Math.min(intendedElectiveRate - tier1Threshold, ms.tier2Rate / 100)) * (ms.tier2Match / 100);
     let match = eligibleGross * matchRate;
 
-    let nonElective = eligibleGross * 0.06;
+    let nonElective = eligibleGross * ((ms.retirement + ms.additional) / 100);
 
     const room415c = Math.max(0, LIMIT_415C - cum415);
     const total = actualPre + actualRoth + actualAfterTax + match + nonElective;
@@ -255,6 +259,14 @@ const DEFAULTS = {
   bonusRates: { preTax: 6, roth: 0, afterTax: 0 },
   spillOn: true,
   catchup: "none",
+  matchStrategy: {
+    tier1Rate: 3,
+    tier1Match: 100,
+    tier2Rate: 4,
+    tier2Match: 50,
+    retirement: 5,
+    additional: 1,
+  },
 };
 
 function loadSaved() {
@@ -287,12 +299,13 @@ function App() {
   const [bonusRates, setBonusRates] = useState(saved.bonusRates);
   const [spillOn, setSpillOn] = useState(saved.spillOn);
   const [catchup, setCatchup] = useState(saved.catchup);
+  const [matchStrategy, setMatchStrategy] = useState(saved.matchStrategy);
   const [savedAt, setSavedAt] = useState(null);
 
   useEffect(() => {
-    saveState({ lastPayDate, paycheckGross, sti, ltis, ytd, regRates, bonusRates, spillOn, catchup });
+    saveState({ lastPayDate, paycheckGross, sti, ltis, ytd, regRates, bonusRates, spillOn, catchup, matchStrategy });
     setSavedAt(new Date());
-  }, [lastPayDate, paycheckGross, sti, ltis, ytd, regRates, bonusRates, spillOn, catchup]);
+  }, [lastPayDate, paycheckGross, sti, ltis, ytd, regRates, bonusRates, spillOn, catchup, matchStrategy]);
 
   const resetAll = () => {
     if (!window.confirm("Reset all inputs to defaults and clear saved data?")) return;
@@ -310,10 +323,11 @@ function App() {
     setBonusRates(DEFAULTS.bonusRates);
     setSpillOn(DEFAULTS.spillOn);
     setCatchup(DEFAULTS.catchup);
+    setMatchStrategy(DEFAULTS.matchStrategy);
   };
 
   const exportJson = () => {
-    const state = { lastPayDate, paycheckGross, sti, ltis, ytd, regRates, bonusRates, spillOn, catchup };
+    const state = { lastPayDate, paycheckGross, sti, ltis, ytd, regRates, bonusRates, spillOn, catchup, matchStrategy };
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -386,6 +400,7 @@ function App() {
       ytd: ytdNum,
       spillOn,
       catchupAmount,
+      matchStrategy,
     });
 
     const remainingElectiveLimit = Math.max(0, LIMIT_402G + catchupAmount - (ytdNum.preTax + ytdNum.roth));
@@ -411,6 +426,7 @@ function App() {
       ytd: ytdNum,
       spillOn: true,
       catchupAmount,
+      matchStrategy,
     });
 
     const maxMatchSim = simulate({
@@ -420,6 +436,7 @@ function App() {
       ytd: ytdNum,
       spillOn: true,
       catchupAmount,
+      matchStrategy,
     });
 
     const maxPossibleMatch = Math.max(maxMatchSim.finalState.cumMatch, userSim.finalState.cumMatch);
@@ -437,7 +454,7 @@ function App() {
       unused402g,
       unused415c,
     };
-  }, [lastPayDate, paycheckGross, sti, ltis, ytd, regRates, bonusRates, spillOn, catchupAmount]);
+  }, [lastPayDate, paycheckGross, sti, ltis, ytd, regRates, bonusRates, spillOn, catchupAmount, matchStrategy]);
 
   const addLti = () => setLtis([...ltis, { amount: 0, date: "2026-09-01" }]);
   const rmLti = (i) => setLtis(ltis.filter((_, idx) => idx !== i));
@@ -453,8 +470,7 @@ function App() {
         <div>
           <h1>401(k) Contribution Planner - 2026</h1>
           <div className="sub">
-            Bayer plan: 100% match on first 3%, 50% on next 4%, plus 5% + 1% non-elective. Match continues past
-            402(g) and stops only at 415(c).
+            Configure your Bayer plan match strategy below (default: 100% match on first 3%, 50% on next 4%, plus 5% + 1% non-elective). Match continues past 402(g) and stops only at 415(c).
           </div>
         </div>
         <div className="flex" style={{ gap: 6, flexWrap: "wrap" }}>
@@ -578,6 +594,56 @@ function App() {
             step="1000"
             suffix="$"
             hint="For 401(a)(17) tracking"
+          />
+        </div>
+      </div>
+
+      <div className="card">
+        <h2>Company Match Strategy</h2>
+        <div className="grid grid-3">
+          <NumInput
+            label="Tier 1: Match threshold %"
+            value={matchStrategy.tier1Rate}
+            onChange={(v) => setMatchStrategy({ ...matchStrategy, tier1Rate: v })}
+            step="0.5"
+            hint="Employee deferral % for first tier match"
+          />
+          <NumInput
+            label="Tier 1: Match %"
+            value={matchStrategy.tier1Match}
+            onChange={(v) => setMatchStrategy({ ...matchStrategy, tier1Match: v })}
+            step="5"
+            hint="Employer match % on tier 1"
+          />
+          <div></div>
+          <NumInput
+            label="Tier 2: Additional threshold %"
+            value={matchStrategy.tier2Rate}
+            onChange={(v) => setMatchStrategy({ ...matchStrategy, tier2Rate: v })}
+            step="0.5"
+            hint="Additional deferral % for second tier match"
+          />
+          <NumInput
+            label="Tier 2: Match %"
+            value={matchStrategy.tier2Match}
+            onChange={(v) => setMatchStrategy({ ...matchStrategy, tier2Match: v })}
+            step="5"
+            hint="Employer match % on tier 2"
+          />
+          <div></div>
+          <NumInput
+            label="Retirement auto contribution %"
+            value={matchStrategy.retirement}
+            onChange={(v) => setMatchStrategy({ ...matchStrategy, retirement: v })}
+            step="0.5"
+            hint="Base company retirement contribution"
+          />
+          <NumInput
+            label="Additional contribution %"
+            value={matchStrategy.additional}
+            onChange={(v) => setMatchStrategy({ ...matchStrategy, additional: v })}
+            step="0.5"
+            hint="Job level-based company contribution"
           />
         </div>
       </div>
