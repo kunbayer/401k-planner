@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:www.irs.gov)",
+      "WebFetch(domain:www.milliman.com)",
+      "WebFetch(domain:www.mercer.com)"
+    ]
+  }
+}
