@@ -359,6 +359,7 @@ function App() {
   const [matchStrategy, setMatchStrategy] = useState(saved.matchStrategy);
   const [savedAt, setSavedAt] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
+  const [helpTab, setHelpTab] = useState("getting-started");
 
   useEffect(() => {
     saveState({ lastPayDate, paycheckGross, sti, ltis, ytd, regRates, bonusRates, spillOn, catchup, matchStrategy });
@@ -582,58 +583,168 @@ function App() {
 
       {showHelp && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-          <div style={{ background: "white", borderRadius: 8, maxWidth: 600, maxHeight: "80vh", overflow: "auto", padding: 24 }}>
+          <div style={{ background: "white", borderRadius: 8, maxWidth: 700, maxHeight: "85vh", overflow: "auto", padding: 24 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h2 style={{ margin: 0 }}>Help & Key Terms</h2>
+              <h2 style={{ margin: 0 }}>Help & Getting Started</h2>
               <button onClick={() => setShowHelp(false)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: "#999" }}>
                 ✕
               </button>
             </div>
 
-            <h3>2026 IRS Limits</h3>
-            <ul style={{ fontSize: 13, lineHeight: 1.8 }}>
-              <li><strong>402(g) Elective Deferral Cap:</strong> $24,500 (max pre-tax + Roth combined)</li>
-              <li><strong>415(c) Total Additions Cap:</strong> $72,000 (employee + employer combined)</li>
-              <li><strong>401(a)(17) Compensation Cap:</strong> $360,000 (max compensation counted for match/non-elective)</li>
-              <li><strong>Catch-up Age 50+:</strong> +$8,000 (total $32,500)</li>
-              <li><strong>Catch-up Age 60-63:</strong> +$11,250 (total $35,750)</li>
-            </ul>
-
-            <h3>Key Terms</h3>
-            <div style={{ fontSize: 13, lineHeight: 1.8 }}>
-              <div style={{ marginBottom: 12 }}>
-                <strong>402(g) - Elective Deferral Cap:</strong>
-                <p>The maximum amount of pre-tax and Roth contributions you can make to your 401(k) in a calendar year. When you hit this limit, no more employee deferrals can be made for the rest of the year.</p>
-              </div>
-              <div style={{ marginBottom: 12 }}>
-                <strong>415(c) - Total Additions Cap:</strong>
-                <p>The maximum total that can go into your 401(k) account in one year, including your employee deferrals, employer match, and company contributions. Once reached, no more contributions (from you or your employer) can be added.</p>
-              </div>
-              <div style={{ marginBottom: 12 }}>
-                <strong>401(a)(17) - Compensation Cap:</strong>
-                <p>The maximum compensation that counts toward calculating your employer match and non-elective contributions. High earners may have some compensation above this limit not counted for match calculations.</p>
-              </div>
-              <div style={{ marginBottom: 12 }}>
-                <strong>Employer Match:</strong>
-                <p>Free money your employer contributes based on your deferrals. Bayer's plan: 100% match on first 3% + 50% match on next 4% of your deferrals.</p>
-              </div>
-              <div style={{ marginBottom: 12 }}>
-                <strong>5% Retirement Contribution:</strong>
-                <p>A base company contribution equal to 5% of eligible compensation, regardless of whether you contribute.</p>
-              </div>
-              <div style={{ marginBottom: 12 }}>
-                <strong>1% Additional Contribution:</strong>
-                <p>A job-level-based company contribution. Not all employees receive this—check your plan documents.</p>
-              </div>
-              <div style={{ marginBottom: 12 }}>
-                <strong>Spillover:</strong>
-                <p>When enabled, excess pre-tax/Roth contributions that exceed the 402(g) cap are automatically redirected to after-tax contributions, allowing you to defer more money.</p>
-              </div>
-              <div>
-                <strong>YTD (Year-to-Date):</strong>
-                <p>Your total contributions and employer additions since the start of 2026 through your last paycheck. This is the starting point for the projection.</p>
-              </div>
+            <div style={{ display: "flex", gap: 12, marginBottom: 20, borderBottom: "1px solid #ddd" }}>
+              <button
+                onClick={() => setHelpTab("getting-started")}
+                style={{
+                  background: helpTab === "getting-started" ? "#007bff" : "#f5f5f5",
+                  color: helpTab === "getting-started" ? "white" : "#333",
+                  border: "none",
+                  padding: "8px 16px",
+                  borderRadius: "4px 4px 0 0",
+                  cursor: "pointer",
+                  fontWeight: helpTab === "getting-started" ? "bold" : "normal",
+                }}
+              >
+                Getting Started
+              </button>
+              <button
+                onClick={() => setHelpTab("terms")}
+                style={{
+                  background: helpTab === "terms" ? "#007bff" : "#f5f5f5",
+                  color: helpTab === "terms" ? "white" : "#333",
+                  border: "none",
+                  padding: "8px 16px",
+                  borderRadius: "4px 4px 0 0",
+                  cursor: "pointer",
+                  fontWeight: helpTab === "terms" ? "bold" : "normal",
+                }}
+              >
+                Terms & Limits
+              </button>
             </div>
+
+            {helpTab === "getting-started" && (
+              <div style={{ fontSize: 13, lineHeight: 1.8 }}>
+                <h3 style={{ marginTop: 0 }}>Step-by-Step Guide</h3>
+                
+                <div style={{ background: "#f9f9f9", padding: 12, borderRadius: 4, marginBottom: 16 }}>
+                  <strong>💡 Tip:</strong> This is easiest if you have your recent pay slip handy. It will take about 5 minutes.
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                  <h4>Step 1: Enter Your Pay Schedule</h4>
+                  <ul>
+                    <li>Find your <strong>Last Paycheck Date</strong> (look for the date on your most recent pay slip)</li>
+                    <li>Enter your <strong>Regular Paycheck Gross</strong> — this is your gross pay before taxes (usually labeled as "Gross" on the pay slip)</li>
+                    <li>The tool assumes biweekly pay and projects to Dec 31, 2026</li>
+                  </ul>
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                  <h4>Step 2: Add Bonuses (Optional)</h4>
+                  <ul>
+                    <li>If you expect an STI (short-term incentive), enter the amount and expected pay date</li>
+                    <li>For LTIs (long-term incentives), click "+ Add LTI" for each one</li>
+                    <li>If you don't know the exact amounts, you can skip this for now and see base projections</li>
+                  </ul>
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                  <h4>Step 3: Enter Your YTD (Year-to-Date) Totals</h4>
+                  <ul>
+                    <li>Look at your most recent pay slip for your YTD amounts:
+                      <ul>
+                        <li><strong>YTD employee pre-tax</strong> — usually shows "Pre-tax" or "Traditional" YTD</li>
+                        <li><strong>YTD employee Roth</strong> — if you contribute to Roth</li>
+                        <li><strong>YTD employee after-tax</strong> — if you have after-tax contributions</li>
+                        <li><strong>YTD company match</strong> — employer match received so far</li>
+                        <li><strong>YTD company 5% retirement</strong> — base employer contribution</li>
+                        <li><strong>YTD company 1% additional</strong> — only if your plan includes this</li>
+                      </ul>
+                    </li>
+                  </ul>
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                  <h4>Step 4: Set Your Contribution Strategy</h4>
+                  <ul>
+                    <li>Under "Company Match Strategy", verify the match structure matches your plan (usually already set correctly)</li>
+                    <li>Under "Contribution Rates", set your desired <strong>Pre-tax %</strong> using the slider or number box
+                      <ul>
+                        <li><strong>Tip:</strong> If you want to maximize employer match, aim for at least 7% (3% for 100% match + 4% for 50% match)</li>
+                      </ul>
+                    </li>
+                    <li>You can also contribute to Roth or After-tax if desired (combined limit: 50%)</li>
+                    <li>Use the sliders for easy adjustment — watch the projections update in real-time</li>
+                  </ul>
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                  <h4>Step 5: Review Your Projections</h4>
+                  <ul>
+                    <li>Scroll down to "Key Dates & Caps" to see when you'll hit the various IRS limits</li>
+                    <li>Look at the "Per-Paycheck Projection" table to see contribution amounts over time</li>
+                    <li>Check "Money Left on the Table" at the top to see if you're capturing all employer match</li>
+                  </ul>
+                </div>
+
+                <div style={{ background: "#e7f3ff", padding: 12, borderRadius: 4 }}>
+                  <strong>Next Steps:</strong> Adjust your contribution percentage and watch how it affects the cap dates and match capture. Most employees find their sweet spot between 7-15% to balance take-home pay with employer benefits.
+                </div>
+              </div>
+            )}
+
+            {helpTab === "terms" && (
+              <div style={{ fontSize: 13, lineHeight: 1.8 }}>
+                <h3 style={{ marginTop: 0 }}>2026 IRS Limits</h3>
+                <ul>
+                  <li><strong>402(g) Elective Deferral Cap:</strong> $24,500 (max pre-tax + Roth combined)</li>
+                  <li><strong>415(c) Total Additions Cap:</strong> $72,000 (employee + employer combined)</li>
+                  <li><strong>401(a)(17) Compensation Cap:</strong> $360,000 (max compensation counted for match/non-elective)</li>
+                  <li><strong>Catch-up Age 50+:</strong> +$8,000 (total $32,500)</li>
+                  <li><strong>Catch-up Age 60-63:</strong> +$11,250 (total $35,750)</li>
+                </ul>
+
+                <h3>Key Terms</h3>
+                <div>
+                  <div style={{ marginBottom: 12 }}>
+                    <strong>402(g) - Elective Deferral Cap:</strong>
+                    <p>The maximum amount of pre-tax and Roth contributions <strong>you can make</strong> to your 401(k) in a calendar year ($24,500 in 2026). Employer contributions (match, 5%, 1%) do NOT count toward this limit. When you hit this limit, no more employee deferrals can be made for the rest of the year.</p>
+                  </div>
+                  <div style={{ marginBottom: 12 }}>
+                    <strong>415(c) - Total Additions Cap:</strong>
+                    <p>The maximum <strong>combined total</strong> that can go into your 401(k) account in one year ($72,000 in 2026). This includes: your employee deferrals (pre-tax, Roth, after-tax) + employer match + employer's 5% retirement contribution + employer's 1% additional contribution. Once reached, no more contributions (from you or your employer) can be added.</p>
+                  </div>
+                  <div style={{ marginBottom: 12 }}>
+                    <strong>401(a)(17) - Compensation Cap:</strong>
+                    <p>The maximum compensation that counts toward calculating your employer match and non-elective contributions. High earners may have some compensation above this limit not counted for match calculations.</p>
+                  </div>
+                  <div style={{ marginBottom: 12 }}>
+                    <strong>Employer Match:</strong>
+                    <p>Free money your employer contributes based on your deferrals. Bayer's plan: 100% match on first 3% + 50% match on next 4% of your deferrals.</p>
+                  </div>
+                  <div style={{ marginBottom: 12 }}>
+                    <strong>5% Retirement Contribution:</strong>
+                    <p>A base company contribution equal to 5% of eligible compensation, regardless of whether you contribute.</p>
+                  </div>
+                  <div style={{ marginBottom: 12 }}>
+                    <strong>1% Additional Contribution:</strong>
+                    <p>A job-level-based company contribution. Not all employees receive this—check your plan documents.</p>
+                  </div>
+                  <div style={{ marginBottom: 12 }}>
+                    <strong>Spillover:</strong>
+                    <p>When enabled, excess pre-tax/Roth contributions that would exceed the 402(g) cap ($24,500) are automatically redirected to after-tax contributions, allowing you to defer more total money. After-tax contributions do NOT count toward the 402(g) limit but DO count toward the 415(c) total cap.</p>
+                  </div>
+                  <div style={{ marginBottom: 12 }}>
+                    <strong>After-Tax Contributions:</strong>
+                    <p>Employee contributions that are made with post-tax dollars. They don't reduce your taxable income like pre-tax contributions do, but can receive spillover funds when you exceed the 402(g) limit. They count toward the 415(c) total cap but not the 402(g) limit.</p>
+                  </div>
+                  <div>
+                    <strong>YTD (Year-to-Date):</strong>
+                    <p>Your total contributions and employer additions since the start of 2026 through your last paycheck. This is the starting point for the projection.</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div style={{ marginTop: 20, textAlign: "right" }}>
               <button onClick={() => setShowHelp(false)}>Close</button>
