@@ -358,6 +358,7 @@ function App() {
   const [catchup, setCatchup] = useState(saved.catchup);
   const [matchStrategy, setMatchStrategy] = useState(saved.matchStrategy);
   const [savedAt, setSavedAt] = useState(null);
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     saveState({ lastPayDate, paycheckGross, sti, ltis, ytd, regRates, bonusRates, spillOn, catchup, matchStrategy });
@@ -565,8 +566,81 @@ function App() {
           <button className="danger ghost" onClick={resetAll} title="Clear saved data and reset defaults">
             Reset
           </button>
+          <button onClick={() => setShowHelp(true)} title="Learn about 401(k) terms and limits">
+            Help
+          </button>
         </div>
       </div>
+
+      <div style={{ background: "#e7f3ff", border: "1px solid #bee5eb", borderRadius: 6, padding: 12, marginBottom: 12 }}>
+        <div style={{ fontSize: 12, color: "#004085", lineHeight: 1.6 }}>
+          <strong>Disclaimer:</strong> This tool is for educational purposes only and does not constitute financial, tax, or investment advice. 
+          Please consult with a qualified financial advisor or tax professional before making any decisions regarding your 401(k) contributions.
+          Results are estimates based on 2026 IRS limits.
+        </div>
+      </div>
+
+      {showHelp && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+          <div style={{ background: "white", borderRadius: 8, maxWidth: 600, maxHeight: "80vh", overflow: "auto", padding: 24 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h2 style={{ margin: 0 }}>Help & Key Terms</h2>
+              <button onClick={() => setShowHelp(false)} style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: "#999" }}>
+                ✕
+              </button>
+            </div>
+
+            <h3>2026 IRS Limits</h3>
+            <ul style={{ fontSize: 13, lineHeight: 1.8 }}>
+              <li><strong>402(g) Elective Deferral Cap:</strong> $24,500 (max pre-tax + Roth combined)</li>
+              <li><strong>415(c) Total Additions Cap:</strong> $72,000 (employee + employer combined)</li>
+              <li><strong>401(a)(17) Compensation Cap:</strong> $360,000 (max compensation counted for match/non-elective)</li>
+              <li><strong>Catch-up Age 50+:</strong> +$8,000 (total $32,500)</li>
+              <li><strong>Catch-up Age 60-63:</strong> +$11,250 (total $35,750)</li>
+            </ul>
+
+            <h3>Key Terms</h3>
+            <div style={{ fontSize: 13, lineHeight: 1.8 }}>
+              <div style={{ marginBottom: 12 }}>
+                <strong>402(g) - Elective Deferral Cap:</strong>
+                <p>The maximum amount of pre-tax and Roth contributions you can make to your 401(k) in a calendar year. When you hit this limit, no more employee deferrals can be made for the rest of the year.</p>
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <strong>415(c) - Total Additions Cap:</strong>
+                <p>The maximum total that can go into your 401(k) account in one year, including your employee deferrals, employer match, and company contributions. Once reached, no more contributions (from you or your employer) can be added.</p>
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <strong>401(a)(17) - Compensation Cap:</strong>
+                <p>The maximum compensation that counts toward calculating your employer match and non-elective contributions. High earners may have some compensation above this limit not counted for match calculations.</p>
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <strong>Employer Match:</strong>
+                <p>Free money your employer contributes based on your deferrals. Bayer's plan: 100% match on first 3% + 50% match on next 4% of your deferrals.</p>
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <strong>5% Retirement Contribution:</strong>
+                <p>A base company contribution equal to 5% of eligible compensation, regardless of whether you contribute.</p>
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <strong>1% Additional Contribution:</strong>
+                <p>A job-level-based company contribution. Not all employees receive this—check your plan documents.</p>
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <strong>Spillover:</strong>
+                <p>When enabled, excess pre-tax/Roth contributions that exceed the 402(g) cap are automatically redirected to after-tax contributions, allowing you to defer more money.</p>
+              </div>
+              <div>
+                <strong>YTD (Year-to-Date):</strong>
+                <p>Your total contributions and employer additions since the start of 2026 through your last paycheck. This is the starting point for the projection.</p>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 20, textAlign: "right" }}>
+              <button onClick={() => setShowHelp(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <MoneyOnTableCard
         matchGap={sim.matchGap}
@@ -922,8 +996,7 @@ function App() {
       </div>
 
       <div style={{ fontSize: 11, color: "var(--muted)", textAlign: "center", marginTop: 16 }}>
-        Estimator only. Verify with plan administrator. 2026 limits: 402(g) $24,500 / 415(c) $72,000 / 401(a)(17)
-        $360,000. Source: IRS.gov COLA table.
+        Estimator only. Verify with plan administrator. See Help tab for 2026 IRS limits and term definitions. Source: IRS.gov COLA table.
       </div>
     </div>
   );
