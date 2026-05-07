@@ -365,6 +365,58 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
+  const downloadStandalone = async () => {
+    try {
+      const cssHref = document.querySelector('link[rel="stylesheet"]')?.getAttribute("href");
+      const jsSrc = document.querySelector('script[type="module"]')?.getAttribute("src");
+
+      if (!cssHref || !jsSrc) {
+        throw new Error("Unable to locate built assets for standalone export.");
+      }
+
+      const [cssText, jsText] = await Promise.all([
+        fetch(cssHref).then((r) => {
+          if (!r.ok) throw new Error("Failed to load CSS asset.");
+          return r.text();
+        }),
+        fetch(jsSrc).then((r) => {
+          if (!r.ok) throw new Error("Failed to load JS asset.");
+          return r.text();
+        }),
+      ]);
+
+      const html = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>401(k) Contribution Planner - 2026</title>
+    <style>
+${cssText}
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+${jsText}
+    </script>
+  </body>
+</html>`;
+
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "401k-planner-standalone.html";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Could not generate standalone file from this host. Please try again or use Export in the meantime.");
+      // eslint-disable-next-line no-console
+      console.error(err);
+    }
+  };
+
   const importJson = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -518,7 +570,7 @@ function App() {
             Export
           </button>
           <button 
-            onClick={() => window.open("./401k-planner-standalone.html", "_blank")}
+            onClick={downloadStandalone}
             title="Download standalone HTML for offline use - no server access needed"
             style={{ background: "#28a745", color: "#fff" }}
           >
