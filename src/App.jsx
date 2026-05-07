@@ -70,7 +70,7 @@ function simulate({ events, regRates, bonusRates, ytd, spillOn, catchupAmount, m
   let cumPreRoth = ytd.preTax + ytd.roth;
   let cumAfterTax = ytd.afterTax;
   let cumMatch = ytd.match;
-  let cumNonElective = ytd.nonElective;
+  let cumNonElective = ytd.retirement + ytd.additional;
   let cumComp = ytd.comp;
 
   let cum415 = cumPreRoth + cumAfterTax + cumMatch + cumNonElective;
@@ -295,7 +295,7 @@ const DEFAULTS = {
   paycheckGross: 5000,
   sti: { amount: 0, date: "2026-03-13" },
   ltis: [{ amount: 0, date: "2026-06-05" }],
-  ytd: { preTax: 0, roth: 0, afterTax: 0, match: 0, nonElective: 0, comp: 0 },
+  ytd: { preTax: 0, roth: 0, afterTax: 0, match: 0, retirement: 0, additional: 0, comp: 0 },
   regRates: { preTax: 6, roth: 0, afterTax: 0 },
   bonusRates: { preTax: 6, roth: 0, afterTax: 0 },
   spillOn: true,
@@ -390,7 +390,15 @@ function App() {
         else if (obj.annualBase != null) setPaycheckGross(obj.annualBase / 26);
         if (obj.sti) setSti(obj.sti);
         if (obj.ltis) setLtis(obj.ltis);
-        if (obj.ytd) setYtd(obj.ytd);
+        if (obj.ytd) {
+          const ytdObj = obj.ytd;
+          if (ytdObj.nonElective != null && ytdObj.retirement == null && ytdObj.additional == null) {
+            ytdObj.retirement = ytdObj.nonElective * 0.833;
+            ytdObj.additional = ytdObj.nonElective * 0.167;
+            delete ytdObj.nonElective;
+          }
+          setYtd(ytdObj);
+        }
         if (obj.regRates) setRegRates(obj.regRates);
         if (obj.bonusRates) setBonusRates(obj.bonusRates);
         if (typeof obj.spillOn === "boolean") setSpillOn(obj.spillOn);
@@ -422,7 +430,8 @@ function App() {
       roth: Number(ytd.roth) || 0,
       afterTax: Number(ytd.afterTax) || 0,
       match: Number(ytd.match) || 0,
-      nonElective: Number(ytd.nonElective) || 0,
+      retirement: Number(ytd.retirement) || 0,
+      additional: Number(ytd.additional) || 0,
       comp: Number(ytd.comp) || 0,
     };
 
@@ -622,9 +631,16 @@ function App() {
           />
           <NumInput label="YTD company match" value={ytd.match} onChange={(v) => setYtd({ ...ytd, match: v })} step="10" suffix="$" />
           <NumInput
-            label="YTD company 5% + 1%"
-            value={ytd.nonElective}
-            onChange={(v) => setYtd({ ...ytd, nonElective: v })}
+            label="YTD company 5% retirement"
+            value={ytd.retirement}
+            onChange={(v) => setYtd({ ...ytd, retirement: v })}
+            step="10"
+            suffix="$"
+          />
+          <NumInput
+            label="YTD company 1% additional"
+            value={ytd.additional}
+            onChange={(v) => setYtd({ ...ytd, additional: v })}
             step="10"
             suffix="$"
           />
