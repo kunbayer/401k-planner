@@ -70,7 +70,9 @@ function simulate({ events, regRates, bonusRates, ytd, spillOn, catchupAmount, m
   let cumPreRoth = ytd.preTax + ytd.roth;
   let cumAfterTax = ytd.afterTax;
   let cumMatch = ytd.match;
-  let cumNonElective = ytd.retirement + ytd.additional;
+  let cumRetirement = ytd.retirement;
+  let cumAdditional = ytd.additional;
+  let cumNonElective = cumRetirement + cumAdditional;
   let cumComp = ytd.comp;
 
   let cum415 = cumPreRoth + cumAfterTax + cumMatch + cumNonElective;
@@ -126,7 +128,17 @@ function simulate({ events, regRates, bonusRates, ytd, spillOn, catchupAmount, m
       Math.max(0, Math.min(intendedElectiveRate - tier1Threshold, ms.tier2Rate / 100)) * (ms.tier2Match / 100);
     let match = eligibleGross * matchRate;
 
-    let nonElective = eligibleGross * ((ms.retirement + ms.additional) / 100);
+    let retirement = eligibleGross * (ms.retirement / 100);
+    let additional = eligibleGross * (ms.additional / 100);
+    
+    const actualElective = actualPre + actualRoth + actualAfterTax;
+    if (actualElective < 1e-6) {
+      match = 0;
+      retirement = 0;
+      additional = 0;
+    }
+    
+    let nonElective = retirement + additional;
 
     const room415c = Math.max(0, LIMIT_415C - cum415);
     const total = actualPre + actualRoth + actualAfterTax + match + nonElective;
@@ -169,6 +181,8 @@ function simulate({ events, regRates, bonusRates, ytd, spillOn, catchupAmount, m
     cumPreRoth += actualPre + actualRoth;
     cumAfterTax += actualAfterTax;
     cumMatch += match;
+    cumRetirement += retirement;
+    cumAdditional += additional;
     cumNonElective += nonElective;
     cumComp += ev.gross;
     cum415 = cumPreRoth + cumAfterTax + cumMatch + cumNonElective;
@@ -193,7 +207,8 @@ function simulate({ events, regRates, bonusRates, ytd, spillOn, catchupAmount, m
       roth: actualRoth,
       afterTax: actualAfterTax,
       match,
-      nonElective,
+      retirement,
+      additional,
       cum402g: cumPreRoth,
       cum415,
       notes,
@@ -207,16 +222,17 @@ function simulate({ events, regRates, bonusRates, ytd, spillOn, catchupAmount, m
       roth: a.roth + r.roth,
       afterTax: a.afterTax + r.afterTax,
       match: a.match + r.match,
-      nonElective: a.nonElective + r.nonElective,
+      retirement: a.retirement + r.retirement,
+      additional: a.additional + r.additional,
     }),
-    { gross: 0, preTax: 0, roth: 0, afterTax: 0, match: 0, nonElective: 0 }
+    { gross: 0, preTax: 0, roth: 0, afterTax: 0, match: 0, retirement: 0, additional: 0 }
   );
 
   return {
     rows,
     caps,
     totals,
-    finalState: { cumPreRoth, cumAfterTax, cumMatch, cumNonElective, cumComp, cum415, limit402g },
+    finalState: { cumPreRoth, cumAfterTax, cumMatch, cumRetirement, cumAdditional, cumNonElective, cumComp, cum415, limit402g },
   };
 }
 
@@ -828,8 +844,12 @@ function App() {
             <span>{fmt(sim.finalState.cumMatch)}</span>
           </div>
           <div className="kv">
-            <span>Year-end company 6%</span>
-            <span>{fmt(sim.finalState.cumNonElective)}</span>
+            <span>Year-end company 5%</span>
+            <span>{fmt(sim.finalState.cumRetirement)}</span>
+          </div>
+          <div className="kv">
+            <span>Year-end company 1% (add)</span>
+            <span>{fmt(sim.finalState.cumAdditional)}</span>
           </div>
           <div className="kv">
             <span>Year-end 415(c) total</span>
@@ -855,7 +875,8 @@ function App() {
                 <th>EE Roth</th>
                 <th>EE After-tax</th>
                 <th>ER Match</th>
-                <th>ER 6%</th>
+                <th>ER 5%</th>
+                <th>ER 1% (add)</th>
                 <th>Cum. 402(g)</th>
                 <th>Cum. 415(c)</th>
                 <th style={{ textAlign: "left" }}>Notes</th>
@@ -871,7 +892,8 @@ function App() {
                   <td>{fmt2(r.roth)}</td>
                   <td>{fmt2(r.afterTax)}</td>
                   <td>{fmt2(r.match)}</td>
-                  <td>{fmt2(r.nonElective)}</td>
+                  <td>{fmt2(r.retirement)}</td>
+                  <td>{fmt2(r.additional)}</td>
                   <td>{fmt(r.cum402g)}</td>
                   <td>{fmt(r.cum415)}</td>
                   <td style={{ textAlign: "left" }}>
@@ -890,7 +912,8 @@ function App() {
                 <td>{fmt(sim.totals.roth)}</td>
                 <td>{fmt(sim.totals.afterTax)}</td>
                 <td>{fmt(sim.totals.match)}</td>
-                <td>{fmt(sim.totals.nonElective)}</td>
+                <td>{fmt(sim.totals.retirement)}</td>
+                <td>{fmt(sim.totals.additional)}</td>
                 <td colSpan={3}></td>
               </tr>
             </tbody>
