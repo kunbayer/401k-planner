@@ -30,6 +30,8 @@ jobs:
         run: npm ci
 
       - name: Build app
+        env:
+          VITE_BASE_PATH: /401k-planner/
         run: npm run build
 
       - name: Setup GitHub Pages
