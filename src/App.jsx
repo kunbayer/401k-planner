@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 const LIMIT_402G = 24500;
 const LIMIT_415C = 72000;
@@ -305,7 +305,6 @@ function DateInput({ label, value, onChange }) {
   );
 }
 
-const STORAGE_KEY = "bayer401kPlanner.v2";
 const DEFAULTS = {
   lastPayDate: "2026-04-17",
   paycheckGross: 5000,
@@ -326,27 +325,8 @@ const DEFAULTS = {
   },
 };
 
-function loadSaved() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    return { ...DEFAULTS, ...parsed };
-  } catch {
-    return null;
-  }
-}
-
-function saveState(s) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
-  } catch {
-    // ignore storage errors
-  }
-}
-
 function App() {
-  const saved = loadSaved() || DEFAULTS;
+  const saved = DEFAULTS;
   const [lastPayDate, setLastPayDate] = useState(saved.lastPayDate);
   const [paycheckGross, setPaycheckGross] = useState(saved.paycheckGross);
   const [sti, setSti] = useState(saved.sti);
@@ -357,22 +337,11 @@ function App() {
   const [spillOn, setSpillOn] = useState(saved.spillOn);
   const [catchup, setCatchup] = useState(saved.catchup);
   const [matchStrategy, setMatchStrategy] = useState(saved.matchStrategy);
-  const [savedAt, setSavedAt] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
   const [helpTab, setHelpTab] = useState("getting-started");
 
-  useEffect(() => {
-    saveState({ lastPayDate, paycheckGross, sti, ltis, ytd, regRates, bonusRates, spillOn, catchup, matchStrategy });
-    setSavedAt(new Date());
-  }, [lastPayDate, paycheckGross, sti, ltis, ytd, regRates, bonusRates, spillOn, catchup, matchStrategy]);
-
   const resetAll = () => {
-    if (!window.confirm("Reset all inputs to defaults and clear saved data?")) return;
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // ignore storage errors
-    }
+    if (!window.confirm("Reset all inputs to defaults?")) return;
     setLastPayDate(DEFAULTS.lastPayDate);
     setPaycheckGross(DEFAULTS.paycheckGross);
     setSti(DEFAULTS.sti);
@@ -538,18 +507,18 @@ function App() {
         <div>
           <h1>401(k) Contribution Planner - 2026</h1>
           <div className="sub">
-            Configure your Bayer plan match strategy below (default: 100% match on first 3%, 50% on next 4%, plus 5% + 1% non-elective). Match continues past 402(g) and stops only at 415(c).
+            Configure your company plan match strategy below (default: 100% match on first 3%, 50% on next 4%, plus 5% + 1% non-elective). Match continues past 402(g) and stops only at 415(c).
           </div>
         </div>
         <div className="flex" style={{ gap: 6, flexWrap: "wrap" }}>
-          <span className="pill" title="Inputs auto-saved to this browser">
-            {savedAt ? `Auto-saved ${savedAt.toLocaleTimeString()}` : "Saved"}
+          <span className="pill" title="Data is not saved by this app">
+            Session only
           </span>
           <button onClick={exportJson} title="Download inputs as JSON">
             Export
           </button>
           <button 
-            onClick={() => window.open("https://github.com/kunbayer/401k-planner/raw/main/401k-planner-standalone.html", "_blank")}
+            onClick={() => window.open("./401k-planner-standalone.html", "_blank")}
             title="Download standalone HTML for offline use - no server access needed"
             style={{ background: "#28a745", color: "#fff" }}
           >
@@ -582,15 +551,13 @@ function App() {
 
       <div style={{ background: "#e7f3ff", border: "1px solid #bee5eb", borderRadius: 6, padding: 12, marginBottom: 12 }}>
         <div style={{ fontSize: 12, color: "#004085", lineHeight: 1.6 }}>
-          <strong>Disclaimer:</strong> This tool is for educational purposes only and does not constitute financial, tax, or investment advice. 
-          Please consult with a qualified financial advisor or tax professional before making any decisions regarding your 401(k) contributions.
-          Results are estimates based on 2026 IRS limits.
+          <strong>Disclaimer:</strong> This tool is a personal project and is NOT an official company resource. It is not affiliated with, endorsed by, or reviewed by Human Resources or any official retirement vendor. It does not provide professional financial advice. All calculations are estimates. No personal data or inputs are saved, stored, or transmitted by this application. Always verify your contribution limits and matching rules with the official company retirement portal before making financial decisions.
         </div>
       </div>
 
       <div style={{ background: "#f0f8e7", border: "1px solid #c3e6cb", borderRadius: 6, padding: 12, marginBottom: 12 }}>
         <div style={{ fontSize: 12, color: "#155724", lineHeight: 1.6 }}>
-          <strong>🔒 Privacy & Data:</strong> <strong>No data is sent to any server.</strong> All your inputs are stored only in your browser's local storage on your device. 
+          <strong>🔒 Privacy & Data:</strong> <strong>No data is sent to any server.</strong> This app does not auto-save your inputs. 
           You have full control: use "Export" to download your data, or clear everything with "Reset". 
           For maximum privacy, <a href="#" style={{ color: "#155724", fontWeight: "bold" }} onClick={(e) => { e.preventDefault(); alert("Download the standalone HTML file from the app to run locally with zero server access."); }}>
             download the standalone version
@@ -751,7 +718,7 @@ function App() {
                   </div>
                   <div style={{ marginBottom: 12 }}>
                     <strong>Employer Match:</strong>
-                    <p>Free money your employer contributes based on your deferrals. Bayer's plan: 100% match on first 3% + 50% match on next 4% of your deferrals.</p>
+                    <p>Free money your employer contributes based on your deferrals. Company plan example: 100% match on first 3% + 50% match on next 4% of your deferrals.</p>
                   </div>
                   <div style={{ marginBottom: 12 }}>
                     <strong>5% Retirement Contribution:</strong>
@@ -784,14 +751,14 @@ function App() {
                 <div style={{ background: "#d4edda", border: "1px solid #c3e6cb", borderRadius: 4, padding: 12, marginBottom: 16 }}>
                   <strong style={{ color: "#155724" }}>✓ No data sent to any server</strong>
                   <p style={{ margin: "8px 0 0 0", color: "#155724" }}>
-                    All your inputs, projections, and settings are stored ONLY in your browser's local storage. Nothing is transmitted to external servers or logged.
+                    Inputs are processed in your browser session only. Nothing is transmitted to external servers or logged.
                   </p>
                 </div>
 
                 <h3>Where Your Data is Stored</h3>
                 <ul style={{ paddingLeft: 20 }}>
-                  <li><strong>Browser Local Storage:</strong> Your current session data persists in your browser (auto-save on every change)</li>
-                  <li><strong>Your Device Only:</strong> Local storage is device-specific and browser-specific (different browsers ≠ shared data)</li>
+                  <li><strong>In-Memory Session Data:</strong> Data exists only while this tab is open</li>
+                  <li><strong>Your Device Only:</strong> Data is not written to a remote server</li>
                   <li><strong>Never Uploaded:</strong> No automatic backups, no cloud sync, no telemetry</li>
                 </ul>
 
@@ -813,11 +780,9 @@ function App() {
                   <li><strong>Delete via Browser:</strong> Clear site data in browser settings (Settings → Privacy → Clear browsing data)</li>
                 </ul>
 
-                <h3>GitHub Repository</h3>
+                <h3>Code Transparency</h3>
                 <p>
-                  The full source code is open-source on GitHub: <a href="https://github.com/kunbayer/401k-planner" target="_blank" rel="noopener noreferrer" style={{ color: "#007bff" }}>
-                    kunbayer/401k-planner
-                  </a>. You can review the code to verify no data is sent anywhere.
+                  This is an open-source personal project. You can review the source code in the project repository to verify no data is sent anywhere.
                 </p>
               </div>
             )}
